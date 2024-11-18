@@ -40,8 +40,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/my-microservice:${{ github.ref_name }}
-            ${{ secrets.DOCKER_USERNAME }}/my-microservice:latest-${{ github.ref_name }}
+            ${{ secrets.DOCKER_USERNAME }}/kingGivefivecoins-authentication:${{ github.ref_name }}
+            ${{ secrets.DOCKER_USERNAME }}/kingGivefivecoins-authentication:latest-${{ github.ref_name }}
 
   deploy:
     name: Deploy to Environment
@@ -57,25 +57,25 @@ jobs:
             "test")
               echo "Deploying to test environment"
               ssh -o StrictHostKeyChecking=no ${{ secrets.TEST_SERVER_USER }}@${{ secrets.TEST_SERVER_HOST }} \
-                "docker pull ${{ secrets.DOCKER_USERNAME }}/my-microservice:latest-test && \
+                "docker pull ${{ secrets.DOCKER_USERNAME }}/kingGivefivecoins-authentication:latest-test && \
                  docker stop test-container || true && \
                  docker rm test-container || true && \
-                 docker run -d --name test-container -p 8081:8080 ${{ secrets.DOCKER_USERNAME }}/my-microservice:latest-test"
+                 docker run -d --name test-container -p 8081:8080 ${{ secrets.DOCKER_USERNAME }}/kingGivefivecoins-authentication:latest-test"
               ;;
             "staging")
               echo "Deploying to staging environment"
               ssh -o StrictHostKeyChecking=no ${{ secrets.STAGING_SERVER_USER }}@${{ secrets.STAGING_SERVER_HOST }} \
-                "docker pull ${{ secrets.DOCKER_USERNAME }}/my-microservice:latest-staging && \
+                "docker pull ${{ secrets.DOCKER_USERNAME }}/kingGivefivecoins-authentication:latest-staging && \
                  docker stop staging-container || true && \
                  docker rm staging-container || true && \
-                 docker run -d --name staging-container -p 8082:8080 ${{ secrets.DOCKER_USERNAME }}/my-microservice:latest-staging"
+                 docker run -d --name staging-container -p 8082:8080 ${{ secrets.DOCKER_USERNAME }}/kingGivefivecoins-authentication:latest-staging"
               ;;
             "main")
               echo "Deploying to production environment"
               ssh -o StrictHostKeyChecking=no ${{ secrets.PROD_SERVER_USER }}@${{ secrets.PROD_SERVER_HOST }} \
-                "docker pull ${{ secrets.DOCKER_USERNAME }}/my-microservice:latest && \
+                "docker pull ${{ secrets.DOCKER_USERNAME }}/kingGivefivecoins-authentication:latest && \
                  docker stop prod-container || true && \
                  docker rm prod-container || true && \
-                 docker run -d --name prod-container -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/my-microservice:latest"
+                 docker run -d --name prod-container -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/kingGivefivecoins-authentication:latest"
               ;;
           esac

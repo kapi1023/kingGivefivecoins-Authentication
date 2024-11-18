@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   app:
-    image: my-microservice:latest
+    image: kingGivefivecoins-authentication:latest
     build:
       context: .
     ports:
