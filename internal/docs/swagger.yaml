@@ -1,0 +1,187 @@
+basePath: /
+definitions:
+  models.LoginRequest:
+    properties:
+      email:
+        example: email@example.com
+        type: string
+      password:
+        example: password
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.RegisterRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: securepassword
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.TokenRefreshRequest:
+    properties:
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    required:
+    - token
+    type: object
+  models.TokenResponse:
+    properties:
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+info:
+  contact:
+    email: support@yourdomain.com
+    name: Developer Support
+    url: https://yourdomain.com/support
+  description: API for user authentication, OAuth, and token management
+  title: Authentication Service API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Log in a user by validating email and password
+      parameters:
+      - description: Login Request
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TokenResponse'
+        "400":
+          description: Validation errors
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Log in a user
+      tags:
+      - Authentication
+  /oauth/callback:
+    get:
+      consumes:
+      - application/json
+      description: Handle OAuth callback for Google, LinkedIn, and Apple
+      parameters:
+      - description: OAuth provider (google, linkedin, apple)
+        in: query
+        name: provider
+        required: true
+        type: string
+      - description: Authorization code
+        in: query
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TokenResponse'
+        "400":
+          description: Invalid request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Handle OAuth callback
+      tags:
+      - Authentication
+  /refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refresh JWT token using the old token
+      parameters:
+      - description: Token Refresh Request
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/models.TokenRefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TokenResponse'
+        "400":
+          description: Validation errors
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Invalid token
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Refresh user token
+      tags:
+      - Authentication
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user by providing an email and password
+      parameters:
+      - description: Register Request
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User successfully registered
+          schema:
+            type: string
+        "400":
+          description: Invalid input
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Register a new user
+      tags:
+      - Authentication
+swagger: "2.0"

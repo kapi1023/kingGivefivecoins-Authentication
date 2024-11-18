@@ -1,0 +1,81 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main        # Production branch
+      - staging     # Staging branch
+      - test        # Test branch
+  pull_request:     # Optional: Trigger workflow for PRs
+    branches:
+      - main
+      - staging
+      - test
+
+jobs:
+  build:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Step 3: Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Step 4: Build and Push Docker Image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/kingGivefivecoins-authentication:${{ github.ref_name }}
+            ${{ secrets.DOCKER_USERNAME }}/kingGivefivecoins-authentication:latest-${{ github.ref_name }}
+
+  deploy:
+    name: Deploy to Environment
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH into Server and Deploy
+        env:
+          ENVIRONMENT: ${{ github.ref_name }}
+        run: |
+          case "${{ github.ref_name }}" in
+            "test")
+              echo "Deploying to test environment"
+              ssh -o StrictHostKeyChecking=no ${{ secrets.TEST_SERVER_USER }}@${{ secrets.TEST_SERVER_HOST }} \
+                "docker pull ${{ secrets.DOCKER_USERNAME }}/kingGivefivecoins-authentication:latest-test && \
+                 docker stop test-container || true && \
+                 docker rm test-container || true && \
+                 docker run -d --name test-container -p 8081:8080 ${{ secrets.DOCKER_USERNAME }}/kingGivefivecoins-authentication:latest-test"
+              ;;
+            "staging")
+              echo "Deploying to staging environment"
+              ssh -o StrictHostKeyChecking=no ${{ secrets.STAGING_SERVER_USER }}@${{ secrets.STAGING_SERVER_HOST }} \
+                "docker pull ${{ secrets.DOCKER_USERNAME }}/kingGivefivecoins-authentication:latest-staging && \
+                 docker stop staging-container || true && \
+                 docker rm staging-container || true && \
+                 docker run -d --name staging-container -p 8082:8080 ${{ secrets.DOCKER_USERNAME }}/kingGivefivecoins-authentication:latest-staging"
+              ;;
+            "main")
+              echo "Deploying to production environment"
+              ssh -o StrictHostKeyChecking=no ${{ secrets.PROD_SERVER_USER }}@${{ secrets.PROD_SERVER_HOST }} \
+                "docker pull ${{ secrets.DOCKER_USERNAME }}/kingGivefivecoins-authentication:latest && \
+                 docker stop prod-container || true && \
+                 docker rm prod-container || true && \
+                 docker run -d --name prod-container -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/kingGivefivecoins-authentication:latest"
+              ;;
+          esac
